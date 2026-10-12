@@ -1,79 +1,79 @@
-# 🍩 DesertClassifier: CNN ile Çok Sınıflı Tatlı Sınıflandırması
+# 🍰 Desert101: Convolutional Neural Networks (CNN) ile Yemek Görseli Sınıflandırma ve Hiperparametre Optimizasyonu
 
-Bu proje, Desert101 veri seti kullanılarak geliştirilmiş, 4 farklı tatlı türünü (Baklava, Cannoli, Cupcakes, Donuts) görsel özelliklerine göre sınıflandıran **PyTorch** tabanlı bir Evrişimli Sinir Ağı (CNN) modelidir. Projenin ana amacı, sıfırdan kurulan bir derin öğrenme mimarisinde **hiperparametre optimizasyonu, veri artırma (Data Augmentation) ve düzenlileştirme (Regularization)** tekniklerinin aşırı öğrenme (Overfitting) üzerindeki bilimsel etkilerini analiz etmektir.
+Bu proje, 4 farklı tatlı sınıfını (baklava, cannoli, cup_cakes, donuts) içeren Desert101 veri seti kullanılarak geliştirilmiş PyTorch tabanlı bir Derin Öğrenme (Deep Learning) çalışmasıdır. 
 
-🗂️ **Dataset:** Özel Desert101 Veri Seti (Train/Test olarak ayrılmış 4 Sınıf)
-*Veri setine özel hesaplanmış Normalizasyon Değerleri:* `Mean: [0.5482, 0.4636, 0.3866]`, `Std: [0.254, 0.2574, 0.2628]`
+Projenin temel amacı sadece bir model eğitmek değil; sıfırdan oluşturulmuş bir CNN mimarisinde (DesertClassifier) **Aşırı Öğrenme (Overfitting), Eksik Öğrenme (Underfitting) ve Genelleme (Generalization)** kavramlarını uygulamalı olarak analiz etmektir. Veri artırma (Data Augmentation), Learning Rate, Dropout ve Weight Decay (L2 Regularization) gibi hiperparametrelerin model üzerindeki bilimsel etkileri adım adım test edilip loglanmıştır.
 
----
+## 🧠 Model Mimarisi (DesertClassifier)
 
-## 🧠 Model Mimarisi ve Hiperparametreler
+Model, görsellerdeki karmaşık uzamsal özellikleri (spatial features) çıkarabilmek için iki evrişim bloğundan (Convolutional Block) ve bir sınıflandırıcıdan (Fully Connected) oluşturulmuştur:
 
-Model, doğrusal olmayan karmaşık görsel özellikleri öğrenebilmesi için 2 Evrişim (Convolutional) bloğu ve ardından gelen tam bağlantılı (Fully Connected) bir sınıflandırıcıdan oluşturulmuştur:
-
-*   **Girdi Katmanı:** 64x64 piksel RGB Görseller
-*   **Evrişim Blokları (2 Adet):** Ardışık `nn.Conv2d` (3x3 kernel), `nn.ReLU` aktivasyonları ve boyut indirgeme için `nn.MaxPool2d`. Kapasite **128 Nöron (Hidden Units)** olarak belirlenmiştir.
-*   **Düzenlileştirme (Regularization):** Ezberlemeyi önlemek amacıyla sınıflandırıcı bloğunda `nn.Dropout(p=0.4)` kullanılmıştır.
-*   **Çıktı Katmanı:** 4 Sınıf (Tatlı Türleri)
-*   **Loss Fonksiyonu:** CrossEntropyLoss
-*   **Optimizasyon:** Adam Optimizer (lr=0.0005, weight_decay=1e-4)
+*   **Evrişim Bloğu 1:** 2 adet `nn.Conv2d` (Kernel: 3, Stride: 1, Padding: 1) + `nn.ReLU` aktivasyonu + `nn.MaxPool2d` (Kernel: 2, Stride: 2)
+*   **Evrişim Bloğu 2:** 2 adet `nn.Conv2d` (Kernel: 3, Stride: 1, Padding: 1) + `nn.ReLU` aktivasyonu + `nn.MaxPool2d` (Kernel: 2, Stride: 2)
+*   **Sınıflandırıcı Katman:** `nn.Flatten()` + `nn.Dropout(p=0.4)` + `nn.Linear` (Çıktı Sınıfı: 4)
+*   **Optimizasyon & Kayıp:** Adam Optimizer, CrossEntropyLoss
 
 ---
 
-## 🔬 Hiperparametre Optimizasyonunun Model Üzerindeki Bilimsel Etkisi
+## 🔬 Hiperparametre Optimizasyon Süreci ve Bilimsel Çıktılar
 
-Görsel sınıflandırma problemlerinde model kapasitesi ve veri artırma (augmentation) arasındaki denge, modelin başarısını doğrudan etkiler. Bu projede aşırı öğrenme (overfitting) probleminden ideal genellemeye giden süreç deneysel olarak kanıtlanmıştır.
+Modelin eğitim sürecinde 5 farklı deney tasarımı uygulanmış ve elde edilen metrikler `results/metrics/` ile `results/plots/` klasörlerine loglanmıştır.
 
-### 1. Düzenlileştirme Olmadan Önceki Durum (Ciddi Overfitting)
+### 1. Aşırı Öğrenme Problemi (The Overfitting Trap) - Baseline Testi
 
-Eğitim sürecine yalnızca `Resize`, `ToTensor` ve `Normalize` işlemleri ile (veri artırma veya Dropout olmadan) başlandığında, model eğitim verisini tamamen ezberlemiştir.
+İlk denemede modele hiçbir veri artırma tekniği uygulanmamış, sadece basit bir `Resize` ve veri setine özel hesaplanan `Normalize` işlemleri ile eğitim başlatılmıştır.
 
-*   **Loss Analizi:** Eğitim kaybı (Train Loss) hızla sıfıra yaklaşırken, Test Kaybı (Test Loss) 4. epoch'tan itibaren şiddetli bir şekilde artarak 2.3'lere fırlamıştır.
-*   **Accuracy Analizi:** Model eğitim verisinde **%86.6** gibi yanıltıcı bir doğruluğa ulaşmış, ancak daha önce görmediği test verisinde **%45.7**'de kalarak genelleme yapamamıştır.
+*   **Hiperparametreler:** Hidden Units: 32, LR: 0.001, Train Transforms: *Sadece Normalize*
+*   **Analiz:** Model, eğitim (train) verisini ezberleyerek doğruluğunu (Accuracy) **%86.6** seviyelerine çıkarmış; ancak daha önce görmediği test verisinde **%52.3**'te tıkanmıştır. Test Loss grafiği 4. epoch'tan sonra ivmelenerek şiddetli bir overfitting (ezberleme) durumunu doğrulamıştır.
 
-![Sadece Normalize Plot](results/plots/transform_v1_Only_Normalize_plot.png)
-*(Grafik: Yalnızca normalizasyon uygulanan baseline modelde gözlemlenen şiddetli Overfitting durumu)*
+![Sadece Normalize Model Sonuçları](results/plots/transform_v1_0nly_Normalize_plot.png)
 
-### 2. Kapasite Artışı, Dropout ve Veri Artırma (Dengeli Model)
+### 2. Veri Artırma ve Eksik Öğrenme (Data Augmentation & Underfitting)
 
-Overfitting'i kırmak için sisteme `RandomHorizontalFlip(p=0.4)` ve `TrivialAugmentWide()` veri artırma işlemleri eklenmiştir. Artan veri zorluğunu kaldırabilmesi için modelin kapasitesi (Hidden Units) 32'den 128'e çıkarılmış, genişleyen ağın ezber yapmasını önlemek için `%40 Dropout` ve `Weight Decay (L2 Penalty)` eklenmiştir.
+Modeli ezberlemekten kurtarmak ve farklı açılardan genelleme yapmasını sağlamak için eğitim setine `RandomHorizontalFlip` ve `TrivialAugmentWide` gibi agresif veri bozma işlemleri eklenmiştir. *(Test setinin transformları temiz tutulmuştur).*
 
-*   **Loss Analizi:** Eğitim ve test kayıpları birbiriyle tutarlı bir şekilde azalmış, 18. epoch'ta Test Kaybı **1.18**'e inerek tarihi dip seviyesini görmüştür.
-*   **Accuracy Analizi:** Modelin ezberleme (overfitting) eğilimi tamamen kırılmıştır. Eğitim doğruluğu **%58.5** seviyesinde istikrar kazanırken, Test doğruluğu **%55.4** seviyesine ulaşmış ve sağlıklı bir genelleme (generalization) sağlanmıştır.
+*   **Analiz:** Overfitting tamamen durmuş, train ve test kayıpları (loss) senkronize ilerlemeye başlamıştır. Ancak modelin kapasitesi (Hidden Units: 32) bu karmaşık (bozulmuş) veriyi öğrenmeye yetmemiş ve Accuracy **%45** seviyelerinde takılarak **Underfitting** (eksik öğrenme) eğilimi göstermiştir. Veriyi daha da bozmak (`ColorJitter` eklemek) sonucu %34'lere kadar düşürmüştür.
 
-![Kapasite ve Dropout Eklentisi Plot](results/plots/transform_v4_hidden_128_weight_decay_eklendi_plot.png)
-*(Grafik: Dengeli veri artırma, Dropout ve L2 Regularization sonrası stabil hale gelen öğrenme eğrisi)*
+![Veri Artırma Model Sonuçları](results/plots/transform_v1_Baseline_plot.png)
+
+### 3. Model Kapasitesinin Artırılması ve Dropout
+
+Underfitting problemini çözmek için modelin öğrenme kapasitesi 4 katına çıkarılmış (`hidden_units: 128`), ayrıca artan kapasitenin tekrar ezberlemeye yol açmaması için FC katmanından önce nöronların %40'ını kapatan `Dropout(p=0.4)` eklenmiştir. Daha stabil bir öğrenme için Learning Rate (LR) yarı yarıya (0.0005) düşürülmüştür.
+
+*   **Analiz:** Kapasite artışı modelin öğrenme barajını kırmış ve test doğruluğunu **%55.4** seviyesine (en yüksek seviye), test kaybını ise **1.08** seviyesine taşımıştır.
+
+![Kapasite ve Dropout Sonuçları](results/plots/transform_v4_hidden_128_dropout_eklendi_plot.png)
+
+### 4. İstikrarın Sağlanması: L2 Regularization (Weight Decay)
+
+Kapasitesi artan modelin 18. epoch'tan sonra yaşadığı küçük çaplı test kaybı (test_loss) dalgalanmalarını sönümlemek amacıyla Adam optimizasyonuna `weight_decay=1e-4` eklenmiştir.
+
+*   **Analiz:** Elde edilen en kararlı modeldir. Eğitim süreci boyunca modelin ezberleme hevesi tamamen törpülenmiş, eğitim doğruluğu ağır adımlarla %58.5'te sonlanırken test doğruluğu maksimum potansiyeli olan **%55.4**'e stabil bir şekilde oturmuştur.
+
+![Weight Decay Sonuçları](results/plots/transform_v4_hidden_128_weight_decay_eklendi_plot.png)
 
 ---
 
-## 🚀 Projeyi Bilgisayarınızda Çalıştırma (Testing)
+## 📊 Karşılaştırmalı Deney Özeti
 
-Bu projeyi kendi bilgisayarınızda test etmek, hiperparametreleri değiştirmek ve modeli baştan eğitmek için aşağıdaki adımları izleyebilirsiniz.
+| Deney Adı | Kapasite | LR | Optimizer Ekstralar | Veri Artırma | Max Test Acc. |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Sadece Normalize** | 32 | 0.001 | Yok | Yok | %52.3 |
+| **Baseline (Augmentation)** | 32 | 0.001 | Yok | HFlip + TrivialAug | %45.5 |
+| **Aşırı Augmentation** | 32 | 0.001 | Yok | HFlip + VFlip + ColorJ + TrivialAug | %42.5 |
+| **Kapasite + Dropout** | **128** | 0.0005 | **Dropout(p=0.4)** | HFlip + TrivialAug | **%55.4** |
+| **Weight Decay (Final)** | 128 | 0.0005 | **Weight_Decay(1e-4)** | HFlip + TrivialAug | **%55.4** |
 
-**1. Repoyu Klonlayın:**
+---
 
-```bash
-git clone https://github.com/Yusuf5825/Desert_Web_Hiper_Parametre_oynamasi.git
-cd Desert_Web_Hiper_Parametre_oynamasi
-```
+## 🚀 Projeyi Kendi Bilgisayarınızda Çalıştırma
 
-**2. Sanal Ortam (Virtual Environment) Oluşturun:**
-
-```bash
-# Windows için
-python -m venv .venv
-.venv\Scripts\activate
-
-# Mac/Linux için
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-**3. Gerekli Kütüphaneleri Kurun:**
+Bu projeyi klonlayıp kendi parametrelerinizle test etmek isterseniz:
 
 ```bash
+# Repoyu Klonlayın
+git clone [https://github.com/Yusuf5825/Desert101-Hyperparameter-Tuning-CNN.git](https://github.com/Yusuf5825/Desert101-Hyperparameter-Tuning-CNN.git)
+cd Desert101-Hyperparameter-Tuning-CNN
+
+# Gerekli Kütüphaneleri Kurun (Örnek)
 pip install torch torchvision matplotlib
-```
-
-**4. Jupyter Notebook Üzerinden Deneyleri Başlatın:**
-Proje ana dizinindeki `Desert101.ipynb` dosyasını VS Code veya Jupyter Lab üzerinden açarak tüm hücreleri sırayla çalıştırabilir ve kendi hiperparametre deneylerinizi yapabilirsiniz.
