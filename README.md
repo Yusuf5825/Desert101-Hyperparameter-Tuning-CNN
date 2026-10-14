@@ -1,11 +1,11 @@
-# 🍰 Desert101: Convolutional Neural Networks (CNN) ile Yemek Görseli Sınıflandırma ve Hiperparametre Optimizasyonu
+# 🍰 Dessert101: Convolutional Neural Networks (CNN) ile Yemek Görseli Sınıflandırma ve Hiperparametre Optimizasyonu
 
 Bu proje, 4 farklı tatlı sınıfını (baklava, cannoli, cup_cakes, donuts) içeren Desert101 veri seti kullanılarak geliştirilmiş PyTorch tabanlı bir Derin Öğrenme (Deep Learning) çalışmasıdır. 
 
 > ⚠️ **Akademik Uyarı ve Projenin Kapsamı (Disclaimer):**  
 > Bu çalışmada, model eğitimi görece oldukça sınırlı bir veri seti (~400 görsel) ve bilerek tasarlanmış basit bir Özel Evrişimli Sinir Ağı (2 Bloklu Custom CNN) üzerinden gerçekleştirilmiştir. Eğitim sürecinde doğruluğun (Accuracy) %55-%60 bandında kalması, veri miktarının ve model kapasitesinin doğal bir sınırıdır. **Eğer amaç sadece %90+ doğruluk elde etmek olsaydı, devasa veri setleriyle önceden eğitilmiş (Pretrained) ResNet veya EfficientNet gibi modeller kullanılarak "Transfer Learning" (Transfer Öğrenme) tekniği ile bu hedefe kolayca ulaşılabilirdi.** Ancak bu projenin *asıl amacı*; sıfırdan oluşturulmuş bir mimari üzerinde hiperparametrelerin (Learning Rate, Dropout, L2 Regularization, Data Augmentation vb.) davranışlarını bilimsel olarak gözlemlemek, Aşırı Öğrenme (Overfitting) ile Eksik Öğrenme (Underfitting) arasındaki dengeyi anlamak ve **elimizdeki mevcut kısıtlı mimari/veri ile çıkarılabilecek en optimum (maksimum) performansı matematiksel bir yaklaşımla elde etmektir.**
 
-## 🧠 Model Mimarisi (DesertClassifier)
+## 🧠 Model Mimarisi (DessertClassifier)
 
 Model, görsellerdeki karmaşık uzamsal özellikleri (spatial features) çıkarabilmek için iki evrişim bloğundan (Convolutional Block) ve bir sınıflandırıcıdan (Fully Connected) oluşturulmuştur:
 
